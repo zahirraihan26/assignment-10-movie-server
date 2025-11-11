@@ -259,6 +259,7 @@ app.get('/highestRated', async (req, res) => {
 });
 
 
+
 // mivie img
 app.get('/topMovies', async (req, res) => {
   try {
