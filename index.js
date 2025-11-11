@@ -97,7 +97,7 @@ async function run() {
     // Add a new movie privetrout 
     // post mathod 
     // add movie 
-    // privet page 
+    // private page 
     app.post('/movies', async (req, res) => {
       const data = req.body
       // console.log(data)
@@ -111,7 +111,7 @@ async function run() {
 
     // put 
     // update movie 
-    // privet 
+    // private
     app.put('/movies/:id', async (req, res) => {
       const { id } = req.params
       const data = req.body
@@ -132,28 +132,7 @@ async function run() {
 
     })
 
-//     app.put('/movies/:id', verifyToken, async (req, res) => {
-//   const { id } = req.params;
-//   const data = req.body;
 
-//   const objectId = new ObjectId(id);
-//   const filter = { _id: objectId };
-//   const update = { $set: data };
-
-//   try {
-//     const result = await modelcollection.updateOne(filter, update);
-//     res.send({
-//       success: true,
-//       result
-//     });
-//   } catch (error) {
-//     res.status(500).send({
-//       success: false,
-//       message: "Failed to update movie",
-//       error
-//     });
-//   }
-// });
 
 
 
@@ -276,7 +255,11 @@ app.get('/topMovies', async (req, res) => {
   }
 });
 
-// yygy
+ app.get("/search", async(req, res) => {
+      const search_text = req.query.search
+      const result = await modelcollection.find({title: {$regex: search_text, $options: "i"}}).toArray()
+      res.send(result)
+    })
 
 
 
