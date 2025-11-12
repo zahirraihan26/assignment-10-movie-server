@@ -4,6 +4,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 // fire base 
 const admin = require("firebase-admin");
 const serviceAccount = require("./servicekey.json");
+require("dotenv").config()
 
 const app = express()
 const port = 3000
@@ -23,7 +24,9 @@ admin.initializeApp({
 
 
 
-const uri = "mongodb+srv://assignment-10:a9srgPHiQBzUmz0N@cluster0.5wfdugv.mongodb.net/?appName=Cluster0";
+// const uri = "mongodb+srv://:@cluster0.5wfdugv.mongodb.net/?appName=Cluster0";
+
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.5wfdugv.mongodb.net/?appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -175,7 +178,7 @@ app.get("/movies/filterByRating", async (req, res) => {
       const { id } = req.params
       const objectId = new ObjectId(id)
       const filter = { _id: objectId }
-
+      
       const result = await modelcollection.deleteOne(filter)
 
       res.send({
@@ -247,7 +250,28 @@ app.get("/movies/filterByRating", async (req, res) => {
 
 
     // hiest retade 
-    
+    app.get('/highestRated', async (req, res) => {
+      try {
+        const movie = await modelcollection.aggregate([
+          {
+            $addFields: {
+              numericRating: { $toDouble: "$rating" } // string → number
+            }
+          },
+          { $sort: { numericRating: -1 } },
+          { $limit: 1 }
+        ]).toArray();
+
+        if (movie.length > 0) {
+          res.send({ highestRated: movie[0] });
+        } else {
+          res.send({ highestRated: null });
+        }
+      } catch (error) {
+        console.error('Error fetching highest rated movie:', error);
+        res.status(500).send({ message: 'Failed to get highest rated movie' });
+      }
+    });
 
 
 
