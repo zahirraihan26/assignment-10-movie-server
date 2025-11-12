@@ -88,7 +88,23 @@ async function run() {
 
     // .............
 
-   
+       // ._router..................... rating
+
+app.get("/movies/filterByRating", async (req, res) => {
+  const minRating = parseFloat(req.query.min);
+  const maxRating = parseFloat(req.query.max);
+
+  const filteredMovies = await modelcollection.find({
+    $expr: {
+      $and: [
+        { $gte: [{ $toDouble: "$rating" }, minRating] },
+        { $lte: [{ $toDouble: "$rating" }, maxRating] }
+      ]
+    }
+  }).toArray();
+
+  res.send(filteredMovies);
+});
 
 
 //////////////////////////
