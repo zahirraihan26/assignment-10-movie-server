@@ -67,7 +67,7 @@ const verifyToken = async (req, res, next) => {
 // ...........
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
 
     const db = client.db('assignment-10')
     const modelcollection = db.collection('all-movie')
@@ -203,7 +203,7 @@ app.get("/movies/filterByRating", async (req, res) => {
 
     // my collection peivet 
 
-    app.get('/my-collection', verifyToken, async (req, res) => {
+    app.get('/my-collection',verifyToken, async (req, res) => {
       const email = req.query.email
       const result = await modelcollection.find({ addedBy: email }).toArray()
 
@@ -214,6 +214,7 @@ app.get("/movies/filterByRating", async (req, res) => {
     // Watchlist 
     app.post("/watchlist", async (req, res) => {
       const data = req.body
+      console.log(data)
       const result = await watchlistcollection.insertOne(data)
       res.send(result)
     })
