@@ -77,6 +77,23 @@ async function run() {
       const result = await modelcollection.find().toArray()
       res.send(result)
     })
+     //////////////////all geners
+     // ... inside run() function
+    app.get("/movies/filter", async (req, res) => {
+      const genresQuery = req.query.genres;
+      const genresArray = genresQuery.split(",").map(g => g.trim());
+      const result = await modelcollection.find({ genre: { $in: genresArray } }).toArray();
+      res.send(result);
+    });
+
+    // .............
+
+   
+
+
+//////////////////////////
+
+
 
     // details page 
     // normal page
@@ -119,11 +136,11 @@ async function run() {
       // console.log(data)
       const objectId = new ObjectId(id)
       const filter = { _id: objectId }
-      const update ={
-        $set:data
+      const update = {
+        $set: data
       }
 
-      const result = await modelcollection.updateOne(filter,update)
+      const result = await modelcollection.updateOne(filter, update)
 
       res.send({
         success: true,
@@ -138,15 +155,15 @@ async function run() {
 
     // delete 
     // delet data from api 
-    app.delete('/movies/:id',async(req,res)=>{
-        const { id } = req.params
-        const objectId = new ObjectId(id)
+    app.delete('/movies/:id', async (req, res) => {
+      const { id } = req.params
+      const objectId = new ObjectId(id)
       const filter = { _id: objectId }
 
       const result = await modelcollection.deleteOne(filter)
 
       res.send({
-        success:true,
+        success: true,
         result
       })
 
@@ -154,10 +171,10 @@ async function run() {
 
 
     // Recently Added 6 data 
-    app.get('/latest-movie',async(req,res)=>{
+    app.get('/latest-movie', async (req, res) => {
 
-      const result =await modelcollection.find().sort({created_at: 'desc'}).limit(6).toArray()
-       console.log(result)
+      const result = await modelcollection.find().sort({ created_at: 'desc' }).limit(6).toArray()
+      console.log(result)
 
       res.send(result)
 
@@ -166,100 +183,110 @@ async function run() {
 
 
     // my collection peivet 
-        
-    app.get('/my-collection',verifyToken,async(req,res)=>{
+
+    app.get('/my-collection', verifyToken, async (req, res) => {
       const email = req.query.email
-      const result = await modelcollection.find({addedBy:email}).toArray()
+      const result = await modelcollection.find({ addedBy: email }).toArray()
 
       res.send(result)
     })
 
 
     // Watchlist 
-    app.post("/watchlist",async(req,res)=>{
-      const data =req.body
+    app.post("/watchlist", async (req, res) => {
+      const data = req.body
       const result = await watchlistcollection.insertOne(data)
       res.send(result)
     })
 
-    app.get('/mywatchlist',async(req,res)=>{
-      const email =req.query.email
-      const result =await watchlistcollection.find({watch_by:email}).toArray()
+    app.get('/mywatchlist', async (req, res) => {
+      const email = req.query.email
+      const result = await watchlistcollection.find({ watch_by: email }).toArray()
       res.send(result)
     })
 
     // movie count 
-  app.get('/movieCount', async (req, res) => {
-    try {
-    const count = await modelcollection.countDocuments(); // total movie count
-    res.send({ totalMovies: count });
-    } catch (error) {
-    console.error(error);
-    res.status(500).send({ message: 'Error counting movies' });
-    }
-   });
+    app.get('/movieCount', async (req, res) => {
+      try {
+        const count = await modelcollection.countDocuments(); // total movie count
+        res.send({ totalMovies: count });
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: 'Error counting movies' });
+      }
+    });
 
-  //  total user
-  app.get('/userCount', async (req, res) => {
-  try {
-    // Firebase theke user list anbo
-    const listUsers = await admin.auth().listUsers();
-    const totalUsers = listUsers.users.length;
-    res.send({ totalUsers });
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).send({ message: 'Failed to get user count' });
-  }
-});
+    //  total user
+    app.get('/userCount', async (req, res) => {
+      try {
+        // Firebase theke user list anbo
+        const listUsers = await admin.auth().listUsers();
+        const totalUsers = listUsers.users.length;
+        res.send({ totalUsers });
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).send({ message: 'Failed to get user count' });
+      }
+    });
 
 
-// hiest retade 
-app.get('/highestRated', async (req, res) => {
-  try {
-    const movie = await modelcollection.aggregate([
-      {
-        $addFields: {
-          numericRating: { $toDouble: "$rating" } // string → number
+    // hiest retade 
+    app.get('/highestRated', async (req, res) => {
+      try {
+        const movie = await modelcollection.aggregate([
+          {
+            $addFields: {
+              numericRating: { $toDouble: "$rating" } // string → number
+            }
+          },
+          { $sort: { numericRating: -1 } },
+          { $limit: 1 }
+        ]).toArray();
+
+        if (movie.length > 0) {
+          res.send({ highestRated: movie[0] });
+        } else {
+          res.send({ highestRated: null });
         }
-      },
-      { $sort: { numericRating: -1 } },
-      { $limit: 1 }
-    ]).toArray();
-
-    if (movie.length > 0) {
-      res.send({ highestRated: movie[0] });
-    } else {
-      res.send({ highestRated: null });
-    }
-  } catch (error) {
-    console.error('Error fetching highest rated movie:', error);
-    res.status(500).send({ message: 'Failed to get highest rated movie' });
-  }
-});
+      } catch (error) {
+        console.error('Error fetching highest rated movie:', error);
+        res.status(500).send({ message: 'Failed to get highest rated movie' });
+      }
+    });
 
 
 
-// mivie img
-app.get('/topMovies', async (req, res) => {
-  try {
-    const movies = await modelcollection
-      .find({}, { projection: { title: 1, posterUrl: 1, rating: 1 } })
-      .sort({ rating: -1 })
-      .limit(3)
-      .toArray();
+    // mivie img
+    app.get('/topMovies', async (req, res) => {
+      try {
+        const movies = await modelcollection
+          .find({}, { projection: { title: 1, posterUrl: 1, rating: 1 } })
+          .sort({ rating: -1 })
+          .limit(3)
+          .toArray();
 
-    res.send({ topMovies: movies });
-  } catch (error) {
-    console.error('Error fetching top movies:', error);
-    res.status(500).send({ message: 'Failed to get top movies' });
-  }
-});
+        res.send({ topMovies: movies });
+      } catch (error) {
+        console.error('Error fetching top movies:', error);
+        res.status(500).send({ message: 'Failed to get top movies' });
+      }
+    });
 
- app.get("/search", async(req, res) => {
-      const search_text = req.query.search
-      const result = await modelcollection.find({title: {$regex: search_text, $options: "i"}}).toArray()
-      res.send(result)
-    })
+    // app.get("/search", async (req, res) => {
+    //   const search_text = req.query.search
+    //   const result = await modelcollection.find({ title: { $regex: search_text, $options: "i" } }).toArray()
+    //   res.send(result)
+    // })
+       
+
+  
+
+  
+
+
+
+
+
 
 
 
