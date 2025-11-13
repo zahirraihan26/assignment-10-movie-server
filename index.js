@@ -251,28 +251,28 @@ app.get("/movies/filterByRating", async (req, res) => {
 
 
     // hiest retade 
-    app.get('/highestRated', async (req, res) => {
-      try {
-        const movie = await modelcollection.aggregate([
-          {
-            $addFields: {
-              numericRating: { $toDouble: "$rating" } // string → number
-            }
-          },
-          { $sort: { numericRating: -1 } },
-          { $limit: 1 }
-        ]).toArray();
+    // app.get('/highestRated', async (req, res) => {
+    //   try {
+    //     const movie = await modelcollection.aggregate([
+    //       {
+    //         $addFields: {
+    //           numericRating: { $toDouble: "$rating" } // string → number
+    //         }
+    //       },
+    //       { $sort: { numericRating: -1 } },
+    //       { $limit: 1 }
+    //     ]).toArray();
 
-        if (movie.length > 0) {
-          res.send({ highestRated: movie[0] });
-        } else {
-          res.send({ highestRated: null });
-        }
-      } catch (error) {
-        console.error('Error fetching highest rated movie:', error);
-        res.status(500).send({ message: 'Failed to get highest rated movie' });
-      }
-    });
+    //     if (movie.length > 0) {
+    //       res.send({ highestRated: movie[0] });
+    //     } else {
+    //       res.send({ highestRated: null });
+    //     }
+    //   } catch (error) {
+    //     console.error('Error fetching highest rated movie:', error);
+    //     res.status(500).send({ message: 'Failed to get highest rated movie' });
+    //   }
+    // });
 
 
 
